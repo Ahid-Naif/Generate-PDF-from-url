@@ -8,6 +8,11 @@ const cors = require('cors');
 app.use(express.static(path.join(__dirname, '..', 'public')));
 app.use(cors());
 
+app.get('/test', async (req, res) => {
+  res.writeHead(200, {'Content-Type': 'text/plain'});
+  res.end('Hello World\n');
+});
+
 app.get('/pdf', async (req, res) => {
     let destinationURL = req.query.url;
     const browser = await puppeteer.launch();
