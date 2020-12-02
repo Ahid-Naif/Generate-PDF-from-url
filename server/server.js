@@ -3,8 +3,10 @@ const path = require('path');
 const fs = require('fs')
 const express = require('express');
 const app = express();
+const cors = require('cors');
 
 app.use(express.static(path.join(__dirname, '..', 'public')));
+app.use(cors());
 
 app.get('/pdf', async (req, res) => {
     let destinationURL = req.query.url;
