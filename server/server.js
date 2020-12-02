@@ -15,7 +15,9 @@ app.get('/test', async (req, res) => {
 
 app.get('/pdf', async (req, res) => {
     let destinationURL = req.query.url;
-    const browser = await puppeteer.launch();
+    const browser = await puppeteer.launch({
+		executablePath: '/usr/bin/chromium-browser'
+	});
     const page = await browser.newPage();
     await page.goto(destinationURL, {
       waitUntil: "networkidle2"
