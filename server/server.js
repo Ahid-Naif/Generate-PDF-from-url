@@ -11,6 +11,14 @@ const cors = require('cors');
 app.use(express.static(path.join(__dirname, '..', 'public')));
 app.use(cors());
 
+app.get('/order', async (req, res) => {
+  // io.emit('order:userPlacedOrder', 'new_order');
+  console.log('newOrder');
+
+  res.writeHead(200, {'Content-Type': 'text/plain'});
+  res.end('Successful notification\n');
+});
+
 app.get('/test', async (req, res) => {
   res.writeHead(200, {'Content-Type': 'text/plain'});
   res.end('Hello World\n');
@@ -48,14 +56,6 @@ app.get('/pdf', async (req, res) => {
         //file removed
       })
     }, 10000);
-});
-
-app.get('/order', async (req, res) => {
-  // io.emit('order:userPlacedOrder', 'new_order');
-  console.log('newOrder');
-
-  res.writeHead(200, {'Content-Type': 'text/plain'});
-  res.end('Successful notification\n');
 });
 
 app.listen(5000, () => {
