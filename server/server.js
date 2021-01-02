@@ -11,9 +11,9 @@ const cors = require('cors');
 app.use(express.static(path.join(__dirname, '..', 'public')));
 app.use(cors());
 
-io.on("connection", (socket) =>{
-  console.log("Socket.io connection has started!");
-});
+// io.on("connection", (socket) =>{
+//   console.log("Socket.io connection has started!");
+// });
 
 app.get('/order', async (req, res) => {
   // socket connection handler
