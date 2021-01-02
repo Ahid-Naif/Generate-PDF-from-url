@@ -3,6 +3,9 @@ const path = require('path');
 const fs = require('fs')
 const express = require('express');
 const app = express();
+const server  = require('http').Server(app);
+const io      = require('socket.io')(server);
+app.set('socketio', io);
 const cors = require('cors');
 
 app.use(express.static(path.join(__dirname, '..', 'public')));
@@ -43,6 +46,14 @@ app.get('/pdf', async (req, res) => {
         //file removed
       })
     }, 10000);
+});
+
+app.get('/newOrder', async (req, res) => {
+  io.emit('order:userPlacedOrder', 'new_order');
+  console.log('newOrder');
+
+  res.writeHead(200, {'Content-Type': 'text/plain'});
+  res.end('Successful notification\n');
 });
 
 app.listen(5000, () => {
