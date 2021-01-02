@@ -13,7 +13,7 @@ app.use(cors());
 
 app.get('/order', async (req, res) => {
   // io.emit('order:userPlacedOrder', 'new_order');
-  console.log('newOrder');
+  // console.log('newOrder');
 
   res.writeHead(200, {'Content-Type': 'text/plain'});
   res.end('Successful notification\n');
