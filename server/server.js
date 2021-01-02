@@ -4,7 +4,7 @@ const fs = require('fs')
 const express = require('express');
 const app = express();
 const server  = require('http').createServer(app);
-const io      = require('socket.io')(server);
+const io      = require('socket.io').listen(server);
 // app.set('socketio', io);
 const cors = require('cors');
 
@@ -16,7 +16,13 @@ io.on("connection", (socket) =>{
 });
 
 app.get('/order', async (req, res) => {
-  io.emit('order:userPlacedOrder', 'new_order');
+  // socket connection handler
+  io.sockets.on('connection', function (client) {
+    // this works great:    
+    client.emit('text_msg', {msg: 'Welcome you are now connected.'});
+  });
+
+  // io.emit('order:userPlacedOrder', 'new_order');
   // console.log('newOrder');
 
   res.writeHead(200, {'Content-Type': 'text/plain'});
