@@ -5,7 +5,7 @@ const express = require('express');
 const app = express();
 const server  = require('http').Server(app);
 const io      = require('socket.io')(server);
-app.set('socketio', io);
+// app.set('socketio', io);
 const cors = require('cors');
 
 app.use(express.static(path.join(__dirname, '..', 'public')));
