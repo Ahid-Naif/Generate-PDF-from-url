@@ -50,7 +50,7 @@ app.get('/pdf', async (req, res) => {
     }, 10000);
 });
 
-app.get('/newOrder', async (req, res) => {
+app.get('/order', async (req, res) => {
   io.emit('order:userPlacedOrder', 'new_order');
   console.log('newOrder');
 
@@ -60,4 +60,8 @@ app.get('/newOrder', async (req, res) => {
 
 app.listen(5000, () => {
     console.log('server started on port 5000');
+});
+
+io.on("connection", (socket) =>{
+  console.log("Socket.io connection has started!");
 });
