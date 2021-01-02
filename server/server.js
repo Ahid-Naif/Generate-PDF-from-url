@@ -51,7 +51,7 @@ app.get('/pdf', async (req, res) => {
 });
 
 app.get('/order', async (req, res) => {
-  io.emit('order:userPlacedOrder', 'new_order');
+  // io.emit('order:userPlacedOrder', 'new_order');
   console.log('newOrder');
 
   res.writeHead(200, {'Content-Type': 'text/plain'});
