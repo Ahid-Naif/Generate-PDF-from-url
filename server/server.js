@@ -2,14 +2,14 @@ const puppeteer = require("puppeteer");
 const path = require('path');
 const fs = require('fs')
 const express = require('express');
-const app = express();
-const server  = require('http').createServer(app);
+const app = require('express')();
+const http = require('http').createServer(app);
 const cors = require('cors');
 
 app.use(express.static(path.join(__dirname, '..', 'public')));
 app.use(cors());
 
-app.get('/test', async (req, res) => {
+app.get('/', async (req, res) => {
   res.writeHead(200, {'Content-Type': 'text/plain'});
   res.end('Hello World\n');
 });
