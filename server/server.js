@@ -15,23 +15,18 @@ app.get('/', async (req, res) => {
 });
 
 app.get('/pdf', async (req, res) => {
-  console.log('1');
   let destinationURL = req.query.url;
   const browser = await puppeteer.launch({
     executablePath: '/usr/bin/chromium-browser',
     // executablePath: '',
     // headless: true
   });
-  console.log('2');
     
   const page = await browser.newPage();
-  console.log('3');
     
   await page.goto(destinationURL, {
     waitUntil: "networkidle0"
   });
-  console.log('4');
-
     
   await page.emulateMediaType('screen');
   const pdf = await page.pdf({
