@@ -9,6 +9,7 @@ app.use(express.static(path.join(__dirname, '..', 'public')));
 app.use(cors());
 
 app.get('/', async (req, res) => {
+  console.log('2');
   res.writeHead(200, {'Content-Type': 'text/plain'});
   res.end('Hello World\n');
 });
