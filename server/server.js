@@ -14,19 +14,22 @@ app.get('/', async (req, res) => {
 });
 
 app.get('/pdf', async (req, res) => {
+  console.log('1');
   let destinationURL = req.query.url;
   const browser = await puppeteer.launch({
     executablePath: '/usr/bin/chromium-browser',
     // executablePath: '',
     headless: true
   });
+  console.log('2');
     
   const page = await browser.newPage();
+  console.log('3');
     
   await page.goto(destinationURL, {
     waitUntil: "networkidle0"
   });
-  console.log('1');
+  console.log('4');
 
     
   await page.emulateMediaType('screen');
@@ -44,38 +47,38 @@ app.get('/pdf', async (req, res) => {
   res.send(pdf);
 });
 
-app.get('/pdf_report', async (req, res) => {
-  let destinationURL_1 = req.query.url;
-  destinationURL_2 = destinationURL_1.split('!').join('=')
-  destinationURL_3 = destinationURL_2.split('^').join('?')
-  destinationURL_4 = destinationURL_3.split('*').join('&')
+// app.get('/pdf_report', async (req, res) => {
+//   let destinationURL_1 = req.query.url;
+//   destinationURL_2 = destinationURL_1.split('!').join('=')
+//   destinationURL_3 = destinationURL_2.split('^').join('?')
+//   destinationURL_4 = destinationURL_3.split('*').join('&')
 
-  const browser = await puppeteer.launch({
-    executablePath: '/usr/bin/chromium-browser',
-    // executablePath: '',
-    headless: true
-  });
+//   const browser = await puppeteer.launch({
+//     executablePath: '/usr/bin/chromium-browser',
+//     // executablePath: '',
+//     headless: true
+//   });
     
-  const page = await browser.newPage();
+//   const page = await browser.newPage();
     
-  await page.goto(destinationURL_4, {
-    waitUntil: "networkidle0"
-  });
+//   await page.goto(destinationURL_4, {
+//     waitUntil: "networkidle0"
+//   });
     
-  await page.emulateMediaType('screen');
-  const pdf = await page.pdf({
-    format: 'A4',
-    preferCSSPageSize: true,
-  });
+//   await page.emulateMediaType('screen');
+//   const pdf = await page.pdf({
+//     format: 'A4',
+//     preferCSSPageSize: true,
+//   });
 
-  await browser.close();
+//   await browser.close();
 
-  res.set({
-    "Content-Type": "application/pdf",
-    "Content-Length": pdf.length
-  });
-  res.send(pdf);
-});
+//   res.set({
+//     "Content-Type": "application/pdf",
+//     "Content-Length": pdf.length
+//   });
+//   res.send(pdf);
+// });
 
 app.listen(5000, () => {
     console.log('server started on port 5000');
