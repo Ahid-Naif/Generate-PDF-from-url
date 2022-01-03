@@ -26,6 +26,8 @@ app.get('/pdf', async (req, res) => {
   await page.goto(destinationURL, {
     waitUntil: "networkidle0"
   });
+  console.log('1');
+
     
   await page.emulateMediaType('screen');
   const pdf = await page.pdf({
