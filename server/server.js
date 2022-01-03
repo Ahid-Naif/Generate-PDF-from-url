@@ -18,8 +18,8 @@ app.get('/pdf', async (req, res) => {
   console.log('1');
   let destinationURL = req.query.url;
   const browser = await puppeteer.launch({
-    // executablePath: '/usr/bin/chromium-browser',
-    executablePath: '',
+    executablePath: '/usr/bin/chromium-browser',
+    // executablePath: '',
     // headless: true
   });
   console.log('2');
