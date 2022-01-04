@@ -23,15 +23,29 @@ app.get('/pdf', async (req, res) => {
   });
     
   const page = await browser.newPage();
+
+const header = '<div class="header" style="padding: 0 !important; margin: 0; -webkit-print-color-adjust: exact; background-color: red; color: white; width: 100%; text-align: left; font-size: 12px;">header of Juan<br /> Page <span class="pageNumber"></span> of <span class="totalPages"></span></div>';
+const footer = '<div class="footer" style="padding: 0 !important; margin: 0; -webkit-print-color-adjust: exact; background-color: blue; color: white; width: 100%; text-align: right; font-size: 12px;">footer of Juan<br /> Page <span class="pageNumber"></span> of <span class="totalPages"></span></div>';
     
   await page.goto(destinationURL, {
-    waitUntil: "networkidle0"
+    waitUntil: ['domcontentloaded', 'networkidle2']
   });
     
   await page.emulateMediaType('screen');
   const pdf = await page.pdf({
+    displayHeaderFooter: true,
+    footerTemplate: '<h1 style="font-size:12px;">THIS IS A TEST</h1>',
+    // footerTemplate: '<div id="footer-template" style="font-size:10px !important; color:#808080; padding-left:10px;">hey</div>',
     format: 'A4',
-    preferCSSPageSize: true,
+    // preferCSSPageSize: true,
+    printBackground: true,
+    headless: false,
+    margin : {
+      top: '20px',
+      right: '20px',
+      bottom: '100px',
+      left: '20px'
+  }
   });
 
   await browser.close();
