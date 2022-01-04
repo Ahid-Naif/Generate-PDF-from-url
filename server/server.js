@@ -17,15 +17,14 @@ app.get('/', async (req, res) => {
 app.get('/pdf', async (req, res) => {
   let destinationURL = req.query.url;
   const browser = await puppeteer.launch({
-    executablePath: '/usr/bin/chromium-browser',
-    // executablePath: '',
+    // executablePath: '/usr/bin/chromium-browser',
+    executablePath: '',
     // headless: true
   });
     
   const page = await browser.newPage();
 
-const header = '<div class="header" style="padding: 0 !important; margin: 0; -webkit-print-color-adjust: exact; background-color: red; color: white; width: 100%; text-align: left; font-size: 12px;">header of Juan<br /> Page <span class="pageNumber"></span> of <span class="totalPages"></span></div>';
-const footer = '<div class="footer" style="padding: 0 !important; margin: 0; -webkit-print-color-adjust: exact; background-color: blue; color: white; width: 100%; text-align: right; font-size: 12px;">footer of Juan<br /> Page <span class="pageNumber"></span> of <span class="totalPages"></span></div>';
+  const footer = '<div class="footer" style="padding-left: 10px !important; padding-right: 10px !important; margin: 0; width: 100%; display: flex; flex-wrap: wrap; font-size: 8px;"><div style="text-align: left; width: 45%;"><span style="font-size: 10px;">Authorized Signature:</span></div><div style="text-align: left; width: 35%;"><span style="font-size: 10px;">Recieved by:</span></div><div style="text-align: right; width: 20%"><span>Page <span class="pageNumber"></span> of <span class="totalPages"></span></span></div></div>';
     
   await page.goto(destinationURL, {
     waitUntil: ['domcontentloaded', 'networkidle2']
@@ -34,26 +33,64 @@ const footer = '<div class="footer" style="padding: 0 !important; margin: 0; -we
   await page.emulateMediaType('screen');
   const pdf = await page.pdf({
     displayHeaderFooter: true,
-    footerTemplate: '<h1 style="font-size:12px;">THIS IS A TEST</h1>',
-    // footerTemplate: '<div id="footer-template" style="font-size:10px !important; color:#808080; padding-left:10px;">hey</div>',
+    footerTemplate: footer,
     format: 'A4',
-    // preferCSSPageSize: true,
-    printBackground: true,
-    headless: false,
+    landscape: false,
     margin : {
-      top: '20px',
-      right: '20px',
-      bottom: '100px',
-      left: '20px'
-  }
+      top: '30px',
+      right: '40px',
+      bottom: '60px',
+      left: '40px'
+    }
   });
 
   await browser.close();
 
   res.set({
     "Content-Type": "application/pdf",
-    "Content-Length": pdf.length
+    "Content-Length": pdf.length,
   });
+  res.attachment("invoice.pdf");
+  res.send(pdf);
+});
+
+app.get('/pdfNoSignature', async (req, res) => {
+  let destinationURL = req.query.url;
+  const browser = await puppeteer.launch({
+    // executablePath: '/usr/bin/chromium-browser',
+    executablePath: '',
+    // headless: true
+  });
+    
+  const page = await browser.newPage();
+
+  const footer = '<div class="footer" style="padding-left: 10px !important; padding-right: 10px !important; margin: 0; width: 100%; display: flex; flex-wrap: wrap; font-size: 8px;"><div style="text-align: right; width: 100%"><span>Page <span class="pageNumber"></span> of <span class="totalPages"></span></span></div></div>';
+    
+  await page.goto(destinationURL, {
+    waitUntil: ['domcontentloaded', 'networkidle2']
+  });
+    
+  await page.emulateMediaType('screen');
+  const pdf = await page.pdf({
+    displayHeaderFooter: true,
+    footerTemplate: footer,
+    format: 'A4',
+    landscape: false,
+    margin : {
+      top: '30px',
+      right: '40px',
+      bottom: '60px',
+      left: '40px'
+    }
+  });
+
+  await browser.close();
+
+  res.set({
+    "Content-Type": "application/pdf",
+    "Content-Length": pdf.length,
+  });
+  res.attachment("invoice.pdf");
   res.send(pdf);
 });
 
