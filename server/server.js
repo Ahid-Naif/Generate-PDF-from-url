@@ -16,14 +16,35 @@ app.get('/', async (req, res) => {
 
 app.get('/pdf', async (req, res) => {
   let destinationURL = req.query.url;
-  const browser = await puppeteer.launch({
-    executablePath: '/usr/bin/chromium-browser',
-    // executablePath: '',
-    // headless: true
-  });
+  let browser;
+  try {
+    browser = await puppeteer.launch({
+      executablePath: '/usr/bin/chromium-browser',
+      // executablePath: '',
+      args: [
+        "--no-sandbox",
+        "--disable-setuid-sandbox",
+        "--disable-dev-shm-usage",
+        "--disable-accelerated-2d-canvas",
+        "--no-first-run",
+        "--no-zygote",
+        "--single-process",
+        "--disable-gpu",
+      ],
+      headless: true,
+      timeout: 6000,
+    });
+  } catch (err){
+    ;
+  }
     
-  const page = await browser.newPage();
-
+  let page;
+  try{
+    page = await browser.newPage();
+  } catch (err){
+    ;
+  }
+  
   const footer = '<div class="footer" style="padding-left: 10px !important; padding-right: 10px !important; margin: 0; width: 100%; display: flex; flex-wrap: wrap; font-size: 8px;"><div style="text-align: left; width: 45%;"><span style="font-size: 10px;">Authorized Signature:</span></div><div style="text-align: left; width: 35%;"><span style="font-size: 10px;">Recieved by:</span></div><div style="text-align: right; width: 20%"><span>Page <span class="pageNumber"></span> of <span class="totalPages"></span></span></div></div>';
     
   await page.goto(destinationURL, {
@@ -56,14 +77,35 @@ app.get('/pdf', async (req, res) => {
 
 app.get('/pdfNoSignature', async (req, res) => {
   let destinationURL = req.query.url;
-  const browser = await puppeteer.launch({
-    executablePath: '/usr/bin/chromium-browser',
-    // executablePath: '',
-    // headless: true
-  });
+  let browser;
+  try {
+    browser = await puppeteer.launch({
+      executablePath: '/usr/bin/chromium-browser',
+      // executablePath: '',
+      args: [
+        "--no-sandbox",
+        "--disable-setuid-sandbox",
+        "--disable-dev-shm-usage",
+        "--disable-accelerated-2d-canvas",
+        "--no-first-run",
+        "--no-zygote",
+        "--single-process",
+        "--disable-gpu",
+      ],
+      headless: true,
+      timeout: 6000,
+    });
+  } catch (err){
+    ;
+  }
     
-  const page = await browser.newPage();
-
+  let page;
+  try{
+    page = await browser.newPage();
+  } catch (err){
+    ;
+  }
+  
   const footer = '<div class="footer" style="padding-left: 10px !important; padding-right: 10px !important; margin: 0; width: 100%; display: flex; flex-wrap: wrap; font-size: 8px;"><div style="text-align: right; width: 100%"><span>Page <span class="pageNumber"></span> of <span class="totalPages"></span></span></div></div>';
     
   await page.goto(destinationURL, {
