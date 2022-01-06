@@ -35,14 +35,16 @@ app.get('/pdf', async (req, res) => {
       timeout: 6000,
     });
   } catch (err){
-    ;
+    console.log('error');
+    console.log(err);
   }
     
   let page;
   try{
     page = await browser.newPage();
   } catch (err){
-    ;
+    console.log('error');
+    console.log(err);
   }
   
   const footer = '<div class="footer" style="padding-left: 10px !important; padding-right: 10px !important; margin: 0; width: 100%; display: flex; flex-wrap: wrap; font-size: 8px;"><div style="text-align: left; width: 45%;"><span style="font-size: 10px;">Authorized Signature:</span></div><div style="text-align: left; width: 35%;"><span style="font-size: 10px;">Recieved by:</span></div><div style="text-align: right; width: 20%"><span>Page <span class="pageNumber"></span> of <span class="totalPages"></span></span></div></div>';
