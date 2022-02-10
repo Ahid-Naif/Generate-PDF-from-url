@@ -2,7 +2,6 @@ const puppeteer = require("puppeteer");
 const path = require('path');
 const express = require('express');
 const app = require('express')();
-// const http = require('http').createServer(app);
 const cors = require('cors');
 const axios = require('axios').default;
 
@@ -185,101 +184,89 @@ app.post('/pdf', async (req, res) => {
   res.send(pdfFile);
 });
 
-// app.get('/pdfNoSignature', async (req, res) => {
-//   let destinationURL = req.query.url;
-//   let browser;
-//   try {
-//     browser = await puppeteer.launch({
-//       // executablePath: '/usr/bin/chromium-browser',
-//       executablePath: '',
-//       args: [
-//         "--no-sandbox",
-//         "--disable-setuid-sandbox",
-//         "--disable-dev-shm-usage",
-//         "--disable-accelerated-2d-canvas",
-//         "--no-first-run",
-//         "--no-zygote",
-//         "--single-process",
-//         "--disable-gpu",
-//       ],
-//       headless: true,
-//       timeout: 6000,
-//     });
-//   } catch (err){
-//     ;
-//   }
-    
-//   let page;
-//   try{
-//     page = await browser.newPage();
-//   } catch (err){
-//     ;
-//   }
+app.post('/pdfNoSignature', async (req, res) => {
+  let destinationURL = req.body.url;
+  let name_en = req.body.name_en; 
+  let district_en = req.body.district_en;
+  let building_no = req.body.building_no;
+  let street_name_en = req.body.street_name_en;
+  let city_en = req.body.city_en;
+  let postal_code = req.body.postal_code;
+  let additional_no = req.body.additional_no;
+  let country_en = req.body.country_en;
+  let name = req.body.name;
+  let district = req.body.district;
+  let street_name = req.body.street_name;
+  let city = req.body.city;
+  let country = req.body.country;
+  let id = req.body.id;
+  let logoUrl = req.body.logoUrl;
   
-//   const footer = '<div class="footer" style="padding-left: 10px !important; padding-right: 10px !important; margin: 0; width: 100%; display: flex; flex-wrap: wrap; font-size: 8px;"><div style="text-align: right; width: 100%"><span>Page <span class="pageNumber"></span> of <span class="totalPages"></span></span></div></div>';
-//   const header = '<table><tr><td style="width: 33%"><div style="float: left" lang="en"><div style="float: left">seller_name_en</div><div style="float: left">seller_district_en - seller_building_no seller_street_name_en</div><div style="float: left">seller_city_en seller_postal_code - seller_additional_no, seller_country_en</div></div></td><td style="width: 33%; text-align: center;"><img src="https://masar.fra1.digitaloceanspaces.com/fatoorah/localhost/1/logos/1642937909161ed3e35a5b38.png" alt="logo"></td><td style="width: 33%"><div lang="ar" style="float: right"><div style="float: right">seller_name</div><br><div style="float: right">seller_district - seller_building_no seller_street_name}</div><div style="float: right">seller_city seller_postal_code - seller_additional_no، seller_country</div></div></td></tr></table>';
-
-//   await page.goto(destinationURL, {
-//     waitUntil: ['domcontentloaded', 'networkidle2']
-//   });
+  let image = await axios.get(logoUrl, {responseType: 'arraybuffer'});
+  let logo = Buffer.from(image.data).toString('base64');
+  
+  let browser;
+  try {
+    browser = await puppeteer.launch({
+      executablePath: '/usr/bin/chromium-browser',
+      // executablePath: '',
+      args: [
+        "--no-sandbox",
+        "--disable-setuid-sandbox",
+        "--disable-dev-shm-usage",
+        "--disable-accelerated-2d-canvas",
+        "--no-first-run",
+        "--no-zygote",
+        "--single-process",
+        "--disable-gpu",
+      ],
+      headless: true,
+      timeout: 6000,
+    });
+  } catch (err){
+    console.log('error');
+    console.log(err);
+  }
     
-//   await page.emulateMediaType('screen');
-//   const pdf = await page.pdf({
-//     displayHeaderFooter: true,
-//     footerTemplate: footer,
-//     headerTemplate: header,
-//     format: 'A4',
-//     landscape: false,
-//     margin : {
-//       top: '30px',
-//       right: '40px',
-//       bottom: '60px',
-//       left: '40px'
-//     }
-//   });
+  let page;
+  try{
+    page = await browser.newPage();
+  } catch (err){
+    console.log('error');
+    console.log(err);
+  }
 
-//   await browser.close();
-
-//   res.set({
-//     "Content-Type": "application/pdf",
-//     "Content-Length": pdf.length,
-//   });
-//   res.attachment("invoice.pdf");
-//   res.send(pdf);
-// });
-
-// app.get('/pdf_report', async (req, res) => {
-//   let destinationURL_1 = req.query.url;
-//   destinationURL_2 = destinationURL_1.split('!').join('=')
-//   destinationURL_3 = destinationURL_2.split('^').join('?')
-//   destinationURL_4 = destinationURL_3.split('*').join('&')
-
-//   const browser = await puppeteer.launch({
-//     executablePath: '/usr/bin/chromium-browser',
-//     // executablePath: '',
-//     headless: true
-//   });
+  const footer = '<div class="footer" style="padding-left: 10px !important; padding-right: 10px !important; margin: 0; width: 100%; display: flex; flex-wrap: wrap; font-size: 8px;"><div style="text-align: right; width: 100%"><span>Page <span class="pageNumber"></span> of <span class="totalPages"></span></span></div></div>';
+  const header = '<table style="padding-left: 30px !important; padding-right: 30px !important; margin: 0; width: 100%;"><tr><td style="font-size: 8px; width: 33%"><div style="font-size: 8px; float: left" lang="en"><div style="font-size: 8px; float: left">'+name_en+'</div><br><div style="font-size: 8px; float: left">'+district_en+' - '+building_no+' '+street_name_en+'</div><div style="font-size: 8px; float: left">'+city_en+' '+postal_code+' - '+additional_no+', '+country_en+'</div></div></td><td style="font-size: 8px; width: 33%; text-align: center;"><img width="40px" src="data:image/png;base64, '+logo+'"></td><td style="font-size: 8px; width: 33%"><div lang="ar" style="font-size: 8px; float: right"><div style="font-size: 8px; float: right">'+name+'</div><br><div style="font-size: 8px; float: right">'+district+' - '+building_no+' '+street_name+'</div><br><div style="font-size: 8px; float: right">'+city+' '+postal_code+' - '+additional_no+' '+country+'</div></div></td></tr></table>';
     
-//   const page = await browser.newPage();
+  await page.goto(destinationURL, {
+    waitUntil: ['domcontentloaded', 'networkidle2']
+  });
     
-//   await page.goto(destinationURL_4, {
-//     waitUntil: "networkidle0"
-//   });
-    
-//   await page.emulateMediaType('screen');
-//   const pdf = await page.pdf({
-//     format: 'A4',
-//     preferCSSPageSize: true,
-//   });
+  // await page.emulateMediaType('screen');
+  let pdfFile = await page.pdf({
+    displayHeaderFooter: true,
+    footerTemplate: footer,
+    headerTemplate: header,
+    format: 'A4',
+    landscape: false,
+    margin : {
+      top: '180px',
+      right: '40px',
+      bottom: '60px',
+      left: '40px'
+    }
+  });
 
-//   await browser.close();
+  await browser.close();
 
-//   res.set({
-//     "Content-Type": "application/pdf",
-//     "Content-Length": pdf.length
-//   });
-//   res.send(pdf);
-// });
+  res.set({
+    "Content-Type": "application/pdf",
+    "Content-Length": pdfFile.length,
+  });
+  res.attachment("invoice.pdf");
+  res.send(pdfFile);
+});
 
 app.listen(5000, () => {
     console.log('server started on port 5000');
