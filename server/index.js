@@ -2,42 +2,44 @@ const puppeteer = require("puppeteer");
 const path = require('path');
 const express = require('express');
 const app = require('express')();
-const http = require('http').createServer(app);
+// const http = require('http').createServer(app);
 const cors = require('cors');
 const axios = require('axios').default;
+
 var fs = require('fs');
 var uuid = require('uuid');
 const pdfParser = require('pdf-parse');
 const PDFMerger = require("pdf-merger-js");
+const bodyParser = require("body-parser");
 
 app.use(express.static(path.join(__dirname, '..', 'public')));
+app.use(bodyParser.urlencoded({ extended: false }));
+app.use(bodyParser.json());
 app.use(cors());
 
 app.get('/', async (req, res) => {
-  console.log('2');
   res.writeHead(200, {'Content-Type': 'text/plain'});
   res.end('Hello World\n');
 });
 
-app.get('/pdf', async (req, res) => {
-  let destinationURL = req.query.url;
-
-  let name_en = req.query.name_en; 
-  let district_en = req.query.district_en;
-  let building_no = req.query.building_no;
-  let street_name_en = req.query.street_name_en;
-  let city_en = req.query.city_en;
-  let postal_code = req.query.postal_code;
-  let additional_no = req.query.additional_no;
-  let country_en = req.query.country_en;
-  let name = req.query.name;
-  let district = req.query.district;
-  let street_name = req.query.street_name;
-  let city = req.query.city;
-  let country = req.query.country;
-  let id = req.query.id;
-  let logoUrl = req.query.logoUrl;
-
+app.post('/pdf', async (req, res) => {
+  let destinationURL = req.body.url;
+  let name_en = req.body.name_en; 
+  let district_en = req.body.district_en;
+  let building_no = req.body.building_no;
+  let street_name_en = req.body.street_name_en;
+  let city_en = req.body.city_en;
+  let postal_code = req.body.postal_code;
+  let additional_no = req.body.additional_no;
+  let country_en = req.body.country_en;
+  let name = req.body.name;
+  let district = req.body.district;
+  let street_name = req.body.street_name;
+  let city = req.body.city;
+  let country = req.body.country;
+  let id = req.body.id;
+  let logoUrl = req.body.logoUrl;
+  
   let image = await axios.get(logoUrl, {responseType: 'arraybuffer'});
   let logo = Buffer.from(image.data).toString('base64');
   let pathFile = id+'-'+uuid.v1()+'.pdf';
