@@ -38,6 +38,7 @@ app.get('/pdf', async (req, res) => {
   let country = req.query.country;
   let id = req.query.id;
   let logoUrl = req.query.logoUrl;
+  console.log(logoUrl);
 
   let image = await axios.get(logoUrl, {responseType: 'arraybuffer'});
   let logo = Buffer.from(image.data).toString('base64');
