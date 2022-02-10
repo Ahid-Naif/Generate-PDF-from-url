@@ -9,7 +9,6 @@ var fs = require('fs');
 var uuid = require('uuid');
 const pdfParser = require('pdf-parse');
 const PDFMerger = require("pdf-merger-js");
-const merger = new PDFMerger();
 
 app.use(express.static(path.join(__dirname, '..', 'public')));
 app.use(cors());
@@ -38,11 +37,12 @@ app.get('/pdf', async (req, res) => {
   let country = req.query.country;
   let id = req.query.id;
   let logoUrl = req.query.logoUrl;
-  console.log(logoUrl);
 
   let image = await axios.get(logoUrl, {responseType: 'arraybuffer'});
   let logo = Buffer.from(image.data).toString('base64');
   let pathFile = id+'-'+uuid.v1()+'.pdf';
+
+  let merger = new PDFMerger();
   
   let browser;
   try {
@@ -166,10 +166,11 @@ app.get('/pdf', async (req, res) => {
     });
     merger.add(firstPart);
     merger.add(secondPart);
-    
+
     pdfFile = await merger.saveAsBuffer();
+
   }
-  
+
   await browser.close();
 
   fs.unlinkSync(pathFile);
