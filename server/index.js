@@ -5,6 +5,11 @@ const app = require('express')();
 const http = require('http').createServer(app);
 const cors = require('cors');
 const axios = require('axios').default;
+var fs = require('fs');
+var uuid = require('uuid');
+const pdfParser = require('pdf-parse');
+const PDFMerger = require("pdf-merger-js");
+const merger = new PDFMerger();
 
 app.use(express.static(path.join(__dirname, '..', 'public')));
 app.use(cors());
@@ -31,15 +36,18 @@ app.get('/pdf', async (req, res) => {
   let street_name = req.query.street_name;
   let city = req.query.city;
   let country = req.query.country;
+  let id = req.query.id;
+  let logoUrl = req.query.logoUrl;
 
-  let image = await axios.get('https://masar.fra1.digitaloceanspaces.com/fatoorah/localhost/1/logos/1642937909161ed3e35a5b38.png', {responseType: 'arraybuffer'});
+  let image = await axios.get(logoUrl, {responseType: 'arraybuffer'});
   let logo = Buffer.from(image.data).toString('base64');
+  let pathFile = id+'-'+uuid.v1()+'.pdf';
   
   let browser;
   try {
     browser = await puppeteer.launch({
-      // executablePath: '/usr/bin/chromium-browser',
-      executablePath: '',
+      executablePath: '/usr/bin/chromium-browser',
+      // executablePath: '',
       args: [
         "--no-sandbox",
         "--disable-setuid-sandbox",
@@ -65,49 +73,113 @@ app.get('/pdf', async (req, res) => {
     console.log('error');
     console.log(err);
   }
-  
+
   const footer = '<div class="footer" style="padding-left: 10px !important; padding-right: 10px !important; margin: 0; width: 100%; display: flex; flex-wrap: wrap; font-size: 8px;"><div style="text-align: right; width: 100%"><span>Page <span class="pageNumber"></span> of <span class="totalPages"></span></span></div></div>';
+  const lastPagefooter = '<div class="footer" style="padding-left: 10px !important; padding-right: 10px !important; margin: 0; width: 100%; display: flex; flex-wrap: wrap; font-size: 8px;"><div style="text-align: left; width: 45%;"><span style="font-size: 10px;">Authorized Signature:</span></div><div style="text-align: left; width: 35%;"><span style="font-size: 10px;">Recieved by:</span></div><div style="text-align: right; width: 20%"><span>Page <span class="pageNumber"></span> of <span class="totalPages"></span></span></div></div>';
   const header = '<table style="padding-left: 30px !important; padding-right: 30px !important; margin: 0; width: 100%;"><tr><td style="font-size: 8px; width: 33%"><div style="font-size: 8px; float: left" lang="en"><div style="font-size: 8px; float: left">'+name_en+'</div><br><div style="font-size: 8px; float: left">'+district_en+' - '+building_no+' '+street_name_en+'</div><div style="font-size: 8px; float: left">'+city_en+' '+postal_code+' - '+additional_no+', '+country_en+'</div></div></td><td style="font-size: 8px; width: 33%; text-align: center;"><img width="40px" src="data:image/png;base64, '+logo+'"></td><td style="font-size: 8px; width: 33%"><div lang="ar" style="font-size: 8px; float: right"><div style="font-size: 8px; float: right">'+name+'</div><br><div style="font-size: 8px; float: right">'+district+' - '+building_no+' '+street_name+'</div><br><div style="font-size: 8px; float: right">'+city+' '+postal_code+' - '+additional_no+' '+country+'</div></div></td></tr></table>';
-  // const header = '<span style="font-size: 30px; width: 200px; height: 200px; background-color: black; color: white;">Header 1</span>';
-  // const footer = '<div class="footer" style="padding-left: 10px !important; padding-right: 10px !important; margin: 0; width: 100%; display: flex; flex-wrap: wrap; font-size: 8px;"><div style="text-align: right; width: 100%"><span>Page <span class="pageNumber"></span> of <span class="totalPages"></span></span></div></div>';
     
   await page.goto(destinationURL, {
     waitUntil: ['domcontentloaded', 'networkidle2']
   });
     
-  await page.emulateMediaType('screen');
-  const pdf = await page.pdf({
+  // await page.emulateMediaType('screen');
+  await page.pdf({
+    path: pathFile,
     displayHeaderFooter: true,
     footerTemplate: footer,
     headerTemplate: header,
     format: 'A4',
     landscape: false,
     margin : {
-      top: '100px',
+      top: '180px',
       right: '40px',
       bottom: '60px',
       left: '40px'
     }
   });
 
+  let page2;
+  try{
+    page2 = await browser.newPage();
+  } catch (err){
+    console.log('error');
+    console.log(err);
+  }
+
+  await page2.goto(destinationURL, {
+    waitUntil: ['domcontentloaded', 'networkidle2']
+  });
+
+  const dataBuffer = fs.readFileSync(pathFile);
+  const pdfInfo = await pdfParser(dataBuffer);
+  const numPages = pdfInfo.numpages;
+
+  let pdfFile;
+  if(numPages === 1) 
+  {
+    pdfFile = await page2.pdf({
+      displayHeaderFooter: true,
+      footerTemplate: lastPagefooter,
+      headerTemplate: header,
+      format: 'A4',
+      landscape: false,
+      margin : {
+        top: '180px',
+        right: '40px',
+        bottom: '60px',
+        left: '40px'
+      },     
+      pageRanges: `${numPages}`,
+    });
+  }
+  else
+  {
+    let firstPart = await page2.pdf({
+      displayHeaderFooter: true,
+      footerTemplate: footer,
+      headerTemplate: header,
+      format: 'A4',
+      landscape: false,
+      margin : {
+        top: '180px',
+        right: '40px',
+        bottom: '60px',
+        left: '40px'
+      },     
+      pageRanges: `1-${numPages - 1}`,
+    });
+
+    let secondPart = await page2.pdf({
+      displayHeaderFooter: true,
+      footerTemplate: lastPagefooter,
+      headerTemplate: header,
+      format: 'A4',
+      landscape: false,
+      margin : {
+        top: '180px',
+        right: '40px',
+        bottom: '60px',
+        left: '40px'
+      },     
+      pageRanges: `${numPages}`,
+    });
+    merger.add(firstPart);
+    merger.add(secondPart);
+    
+    pdfFile = await merger.saveAsBuffer();
+  }
+  
   await browser.close();
+
+  fs.unlinkSync(pathFile);
 
   res.set({
     "Content-Type": "application/pdf",
-    "Content-Length": pdf.length,
+    "Content-Length": pdfFile.length,
   });
   res.attachment("invoice.pdf");
-  res.send(pdf);
+  res.send(pdfFile);
 });
-
-function getLogo()
-{
-  request.get('https://masar.fra1.digitaloceanspaces.com/fatoorah/localhost/1/logos/1642937909161ed3e35a5b38.png', function (error, response, body) {
-    if (!error && response.statusCode == 200) {
-      return logo = "data:" + response.headers["content-type"] + ";base64," + Buffer.from(body).toString('base64');
-    }
-  });
-}
 
 // app.get('/pdfNoSignature', async (req, res) => {
 //   let destinationURL = req.query.url;
