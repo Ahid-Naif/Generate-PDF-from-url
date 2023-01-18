@@ -268,7 +268,7 @@ app.post('/pdf/createdBy', async (req, res) => {
     format: 'A4',
     landscape: false,
     margin : {
-      top: '180px',
+      // top: '180px',
       right: '40px',
       bottom: '60px',
       left: '40px'
@@ -301,7 +301,7 @@ app.post('/pdf/createdBy', async (req, res) => {
       format: 'A4',
       landscape: false,
       margin : {
-        top: '180px',
+        // top: '180px',
         right: '40px',
         bottom: '60px',
         left: '40px'
@@ -318,7 +318,7 @@ app.post('/pdf/createdBy', async (req, res) => {
       format: 'A4',
       landscape: false,
       margin : {
-        top: '180px',
+        // top: '180px',
         right: '40px',
         bottom: '60px',
         left: '40px'
@@ -333,7 +333,7 @@ app.post('/pdf/createdBy', async (req, res) => {
       format: 'A4',
       landscape: false,
       margin : {
-        top: '180px',
+        // top: '180px',
         right: '40px',
         bottom: '60px',
         left: '40px'
