@@ -207,7 +207,7 @@ app.post('/pdf/createdBy', async (req, res) => {
   let country = req.body.country;
   let id = req.body.id;
   let logoUrl = req.body.logoUrl;
-  console.log(logoUrl);
+  let pathFile = id+'-'+uuid.v1()+'.pdf';
   
   let image = await axios.get(logoUrl, {responseType: 'arraybuffer'});
   let logo = Buffer.from(image.data).toString('base64');
