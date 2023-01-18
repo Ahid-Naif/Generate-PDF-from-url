@@ -217,6 +217,8 @@ app.post('/pdf/createdBy', async (req, res) => {
   let width = dimensions.width;
   let height = dimensions.height;
   
+  let merger = new PDFMerger();
+  
   let browser;
   try {
     browser = await puppeteer.launch({
@@ -258,6 +260,7 @@ app.post('/pdf/createdBy', async (req, res) => {
     
   // await page.emulateMediaType('screen');
   await page.pdf({
+    path: pathFile,
     displayHeaderFooter: true,
     footerTemplate: footer,
     headerTemplate: header,
