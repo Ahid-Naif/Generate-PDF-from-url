@@ -674,8 +674,8 @@ app.post('/pdf2', async (req, res) => {
 
     let secondPart = await page2.pdf({
       displayHeaderFooter: true,
-      // footerTemplate: lastPagefooter,
-      headerTemplate: header,
+      footerTemplate: lastPagefooter,
+      // headerTemplate: header,
       format: 'A4',
       landscape: false,
       margin : {
