@@ -514,8 +514,8 @@ app.post('/pdfNoSignature2', async (req, res) => {
     
   // await page.emulateMediaType('screen');
   let pdfFile = await page.pdf({
-    displayHeaderFooter: false,
-    // footerTemplate: footer,
+    displayHeaderFooter: true,
+    footerTemplate: footer,
     // headerTemplate: header,
     format: 'A4',
     landscape: false,
@@ -608,8 +608,8 @@ app.post('/pdf2', async (req, res) => {
   // await page.emulateMediaType('screen');
   await page.pdf({
     path: pathFile,
-    displayHeaderFooter: false,
-    // footerTemplate: footer,
+    displayHeaderFooter: true,
+    footerTemplate: footer,
     // headerTemplate: header,
     format: 'A4',
     landscape: false,
@@ -643,7 +643,7 @@ app.post('/pdf2', async (req, res) => {
     pdfFile = await page2.pdf({
       displayHeaderFooter: true,
       footerTemplate: lastPagefooter,
-      headerTemplate: header,
+      // headerTemplate: header,
       format: 'A4',
       landscape: false,
       margin : {
@@ -660,7 +660,7 @@ app.post('/pdf2', async (req, res) => {
     let firstPart = await page2.pdf({
       displayHeaderFooter: true,
       footerTemplate: footer,
-      headerTemplate: header,
+      // headerTemplate: header,
       format: 'A4',
       landscape: false,
       margin : {
@@ -674,7 +674,7 @@ app.post('/pdf2', async (req, res) => {
 
     let secondPart = await page2.pdf({
       displayHeaderFooter: true,
-      footerTemplate: lastPagefooter,
+      // footerTemplate: lastPagefooter,
       headerTemplate: header,
       format: 'A4',
       landscape: false,
