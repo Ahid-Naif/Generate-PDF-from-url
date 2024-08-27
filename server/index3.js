@@ -31,8 +31,11 @@ app.post('/pdf', async (req, res) => {
 
   let image;
   try {
+      console.log("Fetching logo image...");
       image = await axios.get(logoUrl, { responseType: 'arraybuffer' });
+      console.log("Logo image fetched successfully.");
   } catch (error) {
+      console.error("Failed to load logo image:", error);
       return res.status(500).send('Failed to load logo image.');
   }
 
@@ -44,6 +47,7 @@ app.post('/pdf', async (req, res) => {
 
   let browser;
   try {
+      console.log("Launching browser...");
       browser = await puppeteer.launch({
           executablePath: '/usr/bin/chromium-browser',
           args: [
@@ -59,7 +63,9 @@ app.post('/pdf', async (req, res) => {
           headless: true,
           timeout: 60000,
       });
+      console.log("Browser launched successfully.");
   } catch (err) {
+      console.error("Failed to launch browser:", err);
       return res.status(500).send('Failed to launch browser.');
   }
 
@@ -101,13 +107,17 @@ app.post('/pdf', async (req, res) => {
 
   let page, page2;
   try {
+      console.log("Opening first page...");
       page = await browser.newPage();
       await page.goto(destinationURL, { waitUntil: 'domcontentloaded', timeout: 60000 });
+      console.log("First page opened successfully.");
   } catch (error) {
+      console.error("Failed to open the first page:", error);
       return res.status(500).send('Failed to navigate to the URL.');
   }
 
   try {
+      console.log("Generating the first PDF...");
       await page.pdf({
           path: pathFile,
           displayHeaderFooter: true,
@@ -121,13 +131,17 @@ app.post('/pdf', async (req, res) => {
               left: '40px'
           }
       });
+      console.log("First PDF generated successfully.");
   } catch (error) {
+      console.error("Failed to generate the first PDF:", error);
       return res.status(500).send('Failed to generate the first PDF.');
   }
 
   try {
+      console.log("Opening second page...");
       page2 = await browser.newPage();
       await page2.goto(destinationURL, { waitUntil: 'domcontentloaded', timeout: 60000 });
+      console.log("Second page opened successfully.");
 
       const dataBuffer = fs.readFileSync(pathFile);
       const pdfInfo = await pdfParser(dataBuffer);
@@ -135,6 +149,7 @@ app.post('/pdf', async (req, res) => {
 
       let pdfFile;
       if (numPages === 1) {
+          console.log("Generating single-page PDF...");
           pdfFile = await page2.pdf({
               displayHeaderFooter: true,
               headerTemplate: header,
@@ -148,7 +163,9 @@ app.post('/pdf', async (req, res) => {
               },
               pageRanges: `${numPages}`
           });
+          console.log("Single-page PDF generated successfully.");
       } else {
+          console.log("Generating multi-page PDF...");
           const firstPart = await page2.pdf({
               displayHeaderFooter: true,
               headerTemplate: header,
@@ -180,6 +197,7 @@ app.post('/pdf', async (req, res) => {
           merger.add(firstPart);
           merger.add(secondPart);
           pdfFile = await merger.saveAsBuffer();
+          console.log("Multi-page PDF generated and merged successfully.");
       }
 
       await browser.close();
@@ -188,9 +206,10 @@ app.post('/pdf', async (req, res) => {
       res.set({ "Content-Type": "application/pdf", "Content-Length": pdfFile.length });
       res.attachment("invoice.pdf");
       res.send(pdfFile);
+      console.log("PDF sent successfully.");
 
   } catch (error) {
-      console.error(error);
+      console.error("Failed to generate or merge PDF:", error);
       await browser.close();
       return res.status(500).send('Failed to generate or merge PDF.');
   }
