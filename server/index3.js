@@ -23,195 +23,136 @@ app.get('/', async (req, res) => {
 });
 
 app.post('/pdf', async (req, res) => {
-  let {
-      url: destinationURL, name_en, district_en, building_no, street_name_en,
-      city_en, postal_code, additional_no, country_en, name, district,
-      street_name, city, country, id, logoUrl
-  } = req.body;
-
-  let image;
-  try {
-      console.log("Fetching logo image...");
-      image = await axios.get(logoUrl, { responseType: 'arraybuffer' });
-      console.log("Logo image fetched successfully.");
-  } catch (error) {
-      console.error("Failed to load logo image:", error);
-      return res.status(500).send('Failed to load logo image.');
-  }
-
+  let destinationURL = req.body.url;
+  let id = req.body.id;
+  let logoUrl = req.body.logoUrl;
+  
+  console.log("Fetching logo image...");
+  let image = await axios.get(logoUrl, { responseType: 'arraybuffer' });
   let logo = Buffer.from(image.data).toString('base64');
   let pathFile = id + '-' + uuid.v1() + '.pdf';
+
   let img = Buffer.from(logo, 'base64');
-  let { width, height } = sizeOf(img);
+  let dimensions = sizeOf(img);
+  let width = dimensions.width;
+  let height = dimensions.height;
+
   let merger = new PDFMerger();
 
   let browser;
   try {
-      console.log("Launching browser...");
-      browser = await puppeteer.launch({
-          executablePath: '/usr/bin/chromium-browser',
-          args: [
-              "--no-sandbox",
-              "--disable-setuid-sandbox",
-              "--disable-dev-shm-usage",
-              "--disable-accelerated-2d-canvas",
-              "--no-first-run",
-              "--no-zygote",
-              "--single-process",
-              "--disable-gpu",
-          ],
-          headless: true,
-          timeout: 60000,
-      });
-      console.log("Browser launched successfully.");
+    console.log("Launching browser...");
+    browser = await puppeteer.launch({
+      executablePath: '/usr/bin/chromium-browser',
+      args: [
+        "--no-sandbox",
+        "--disable-setuid-sandbox",
+        "--disable-dev-shm-usage",
+        "--disable-accelerated-2d-canvas",
+        "--no-first-run",
+        "--no-zygote",
+        "--single-process",
+        "--disable-gpu"
+      ],
+      headless: true,
+      timeout: 120000, // 2 minutes timeout
+    });
+    console.log("Browser launched successfully.");
   } catch (err) {
-      console.error("Failed to launch browser:", err);
-      return res.status(500).send('Failed to launch browser.');
+    console.error('Browser launch failed:', err);
+    return res.status(500).send('Failed to launch browser.');
   }
 
-  const header = `
-      <table style="width: 100%; margin: 0; padding: 30px;">
-          <tr>
-              <td style="width: 33%; font-size: 8px;">
-                  <div lang="en">
-                      ${name_en}<br>
-                      ${district_en} - ${building_no} ${street_name_en}<br>
-                      ${city_en} ${postal_code} - ${additional_no}, ${country_en}
-                  </div>
-              </td>
-              <td style="width: 33%; text-align: center;">
-                  <img width="${width / 2}px" height="${height / 2}px" src="data:image/png;base64, ${logo}">
-              </td>
-              <td style="width: 33%; text-align: right; font-size: 8px;">
-                  <div lang="ar">
-                      ${name}<br>
-                      ${district} - ${building_no} ${street_name}<br>
-                      ${city} ${postal_code} - ${additional_no}, ${country}
-                  </div>
-              </td>
-          </tr>
-      </table>
-  `;
-  const footer = `
-      <div style="width: 100%; font-size: 8px; display: flex; justify-content: space-between;">
-          <div>Page <span class="pageNumber"></span> of <span class="totalPages"></span></div>
-      </div>
-  `;
-  const lastPageFooter = `
-      <div style="width: 100%; font-size: 8px; display: flex; justify-content: space-between;">
-          <div>Authorized Signature:</div>
-          <div>Received by:</div>
-          <div>Page <span class="pageNumber"></span> of <span class="totalPages"></span></div>
-      </div>
-  `;
+  const header = '<table style="padding-left: 30px !important; padding-right: 30px !important; margin: 0; width: 100%;"><tr><td style="font-size: 8px; width: 33%; text-align: center;"><img width="'+width/2+'px" height="'+height/2+'px" src="data:image/png;base64,'+logo+'"></td></tr></table>';
+  const footer = '<div style="width: 100%; text-align: center; font-size: 10px;">Page <span class="pageNumber"></span> of <span class="totalPages"></span></div>';
+  const lastPagefooter = '<div style="width: 100%; text-align: center; font-size: 10px;">End of Document</div>';
 
-  let page, page2;
+  let page2;
   try {
-      console.log("Opening first page...");
-      page = await browser.newPage();
-      await page.goto(destinationURL, { waitUntil: 'domcontentloaded', timeout: 60000 });
-      console.log("First page opened successfully.");
+    console.log("Opening first page...");
+    let page = await browser.newPage();
+    await page.goto(destinationURL, { waitUntil: 'domcontentloaded', timeout: 120000 });
+    console.log("First page opened successfully.");
+
+    console.log("Generating first PDF...");
+    await page.pdf({
+      path: pathFile,
+      displayHeaderFooter: true,
+      footerTemplate: footer,
+      headerTemplate: header,
+      format: 'A4',
+      margin: { top: '100px', bottom: '100px' }
+    });
+    console.log("First PDF generated successfully.");
+    await page.close();
+
+    console.log("Opening second page...");
+    page2 = await browser.newPage();
+    await page2.goto(destinationURL, { waitUntil: 'domcontentloaded', timeout: 120000 });
+    console.log("Second page opened successfully.");
   } catch (error) {
-      console.error("Failed to open the first page:", error);
-      return res.status(500).send('Failed to navigate to the URL.');
+    console.error('Failed to open page or generate PDF:', error);
+    return res.status(500).send('Failed to generate PDF.');
   }
 
+  const dataBuffer = fs.readFileSync(pathFile);
+  const pdfInfo = await pdfParser(dataBuffer);
+  const numPages = pdfInfo.numpages;
+
   try {
-      console.log("Generating the first PDF...");
-      await page.pdf({
-          path: pathFile,
-          displayHeaderFooter: true,
-          headerTemplate: header,
-          footerTemplate: footer,
-          format: 'A4',
-          margin: {
-              top: '180px',
-              right: '40px',
-              bottom: '60px',
-              left: '40px'
-          }
+    let pdfFile;
+    if (numPages === 1) {
+      console.log("Generating single-page PDF...");
+      pdfFile = await page2.pdf({
+        displayHeaderFooter: true,
+        footerTemplate: lastPagefooter,
+        headerTemplate: header,
+        format: 'A4',
+        margin: { top: '100px', bottom: '100px' },
+        pageRanges: `1`
       });
-      console.log("First PDF generated successfully.");
-  } catch (error) {
-      console.error("Failed to generate the first PDF:", error);
-      return res.status(500).send('Failed to generate the first PDF.');
-  }
+    } else {
+      console.log("Generating multi-page PDF...");
+      let firstPart = await page2.pdf({
+        displayHeaderFooter: true,
+        footerTemplate: footer,
+        headerTemplate: header,
+        format: 'A4',
+        margin: { top: '100px', bottom: '100px' },
+        pageRanges: `1-${numPages - 1}`
+      });
 
-  try {
-      console.log("Opening second page...");
-      page2 = await browser.newPage();
-      await page2.goto(destinationURL, { waitUntil: 'domcontentloaded', timeout: 60000 });
-      console.log("Second page opened successfully.");
+      let secondPart = await page2.pdf({
+        displayHeaderFooter: true,
+        footerTemplate: lastPagefooter,
+        headerTemplate: header,
+        format: 'A4',
+        margin: { top: '100px', bottom: '100px' },
+        pageRanges: `${numPages}`
+      });
 
-      const dataBuffer = fs.readFileSync(pathFile);
-      const pdfInfo = await pdfParser(dataBuffer);
-      const numPages = pdfInfo.numpages;
+      merger.add(firstPart);
+      merger.add(secondPart);
+      pdfFile = await merger.saveAsBuffer();
+    }
 
-      let pdfFile;
-      if (numPages === 1) {
-          console.log("Generating single-page PDF...");
-          pdfFile = await page2.pdf({
-              displayHeaderFooter: true,
-              headerTemplate: header,
-              footerTemplate: lastPageFooter,
-              format: 'A4',
-              margin: {
-                  top: '180px',
-                  right: '40px',
-                  bottom: '60px',
-                  left: '40px'
-              },
-              pageRanges: `${numPages}`
-          });
-          console.log("Single-page PDF generated successfully.");
-      } else {
-          console.log("Generating multi-page PDF...");
-          const firstPart = await page2.pdf({
-              displayHeaderFooter: true,
-              headerTemplate: header,
-              footerTemplate: footer,
-              format: 'A4',
-              margin: {
-                  top: '180px',
-                  right: '40px',
-                  bottom: '60px',
-                  left: '40px'
-              },
-              pageRanges: `1-${numPages - 1}`
-          });
+    console.log("PDF generation and merging completed successfully.");
+    await browser.close();
 
-          const secondPart = await page2.pdf({
-              displayHeaderFooter: true,
-              headerTemplate: header,
-              footerTemplate: lastPageFooter,
-              format: 'A4',
-              margin: {
-                  top: '180px',
-                  right: '40px',
-                  bottom: '60px',
-                  left: '40px'
-              },
-              pageRanges: `${numPages}`
-          });
+    fs.unlinkSync(pathFile);
 
-          merger.add(firstPart);
-          merger.add(secondPart);
-          pdfFile = await merger.saveAsBuffer();
-          console.log("Multi-page PDF generated and merged successfully.");
-      }
+    res.set({
+      "Content-Type": "application/pdf",
+      "Content-Length": pdfFile.length,
+    });
+    res.attachment("invoice.pdf");
+    res.send(pdfFile);
 
-      await browser.close();
-      fs.unlinkSync(pathFile);
-
-      res.set({ "Content-Type": "application/pdf", "Content-Length": pdfFile.length });
-      res.attachment("invoice.pdf");
-      res.send(pdfFile);
-      console.log("PDF sent successfully.");
-
-  } catch (error) {
-      console.error("Failed to generate or merge PDF:", error);
-      await browser.close();
-      return res.status(500).send('Failed to generate or merge PDF.');
+  } catch (err) {
+    console.error('Failed to generate or merge PDF:', err);
+    res.status(500).send('Failed to generate or merge PDF.');
+  } finally {
+    if (browser) await browser.close();
   }
 });
 
